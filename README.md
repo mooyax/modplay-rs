@@ -6,6 +6,7 @@
 - **XM**：[ft2-clone](https://github.com/8bitbubsy/ft2-clone)（同じく 8bitbubsy 氏による FastTracker 2 クローン）の再生ルーチンの移植。
 - **IT・S3M**：自作のエンジン。libopenmpt と同じ曲を鳴らして比べ、再生位置と音量が合うように作っています。
 - **modplay**：トラッカー風の画面で曲を再生する GUI プレイヤー（Windows / Linux / macOS）。
+- **web/**：同じプレイヤーのブラウザ版（WebAssembly）。インストールなしで、ブラウザに曲をドロップして聴けます。
 - **mobile/**：libopenmpt と同じ C の関数名を持つ静的ライブラリ（iOS・Android 向け）。libopenmpt を使っているアプリの差し替え用です。
 
 C/C++ のライブラリには依存しません（比較ツールだけ、任意で libopenmpt を使います）。
@@ -106,6 +107,19 @@ target\release\modplay.exe song.it
 | M / S ボタン | チャンネルのミュート / ソロ |
 
 オプション：`--size 1600x900`（ウィンドウの大きさ）、`--stereo 0〜100`（ステレオの広がり。既定 20）、`--screenshot out.png --at 秒`（画面を PNG に保存して終了）。
+
+### ブラウザ版（`web/`）
+
+同じエンジンと画面を WebAssembly にして、ブラウザで動かします。曲はページにドラッグ＆ドロップするか、フォルダのボタンで開きます。ブラウザの決まりで、音は最初にクリック（かキー入力）したときに出始めます。
+
+```
+powershell -ExecutionPolicy Bypass -File web\build-web.ps1 -Serve
+```
+
+`web\dist` にページ一式（`index.html`・`.js`・`.wasm`）ができ、`-Serve` を付けると http://localhost:8000/ で開きます（Python が必要）。WebAssembly はファイルを直接開く（file://）と動かないので、Web サーバー経由で開いてください。
+
+- `?url=曲のURL` を付けると、その曲を読み込んだ状態で開きます（曲を置いたサーバーが CORS を許可している必要があります）。
+- リポジトリが公開されていれば、`.github/workflows/web.yml` が push のたびにブラウザ版をビルドして GitHub Pages に置きます（Settings → Pages → Source を「GitHub Actions」にしてください）。
 
 ### 比較ツールを使う場合だけ：libopenmpt の準備
 

@@ -1,0 +1,22 @@
+[package]
+name = "modplay-web"
+version = "0.1.0"
+edition = "2021"
+license = "BSD-3-Clause"
+description = "modplay in the browser (WebAssembly): the Rust engines and the tracker-style UI"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+modplay-rs = { path = "..", default-features = false }
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "glow"] }
+cpal = { version = "0.15", features = ["wasm-bindgen"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Window", "Document", "HtmlCanvasElement", "HtmlElement", "Element", "console"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

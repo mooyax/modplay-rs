@@ -1,0 +1,54 @@
+# Builds the browser version of modplay (web/) and publishes it on GitHub Pages.
+# Runs only while the repository is public (GitHub Pages is not available for private
+# repositories on the free plan). Enable it under Settings -> Pages -> Source: GitHub Actions.
+name: Web player
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: web
+      - name: Install wasm-bindgen-cli (same version as in web/Cargo.lock)
+        run: |
+          V=$(grep -A1 '^name = "wasm-bindgen"$' web/Cargo.lock | sed -n 's/^version = "\(.*\)"$/\1/p')
+          cargo install wasm-bindgen-cli --version "$V" --locked
+      - name: Build
+        working-directory: web
+        run: |
+          cargo build --release --target wasm32-unknown-unknown
+          wasm-bindgen --target web --no-typescript --out-dir dist target/wasm32-unknown-unknown/release/modplay_web.wasm
+          cp index.html dist/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

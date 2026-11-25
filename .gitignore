@@ -8,3 +8,6 @@ mobile/ahmod/target/
 mobile/tracker/android/libs/
 mobile/tracker/ios/AHMod.xcframework/
 !docs/*.png
+# web player build outputs (made by web/build-web.ps1)
+web/target/
+web/dist/
