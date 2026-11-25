@@ -315,6 +315,8 @@ fn run(args: Args) -> Result<(), String> {
 }
 
 fn setup_style(ctx: &egui::Context) {
+    // always dark, whatever the system theme
+    ctx.set_theme(egui::ThemePreference::Dark);
     ctx.set_visuals(egui::Visuals::dark());
     let mut style = (*ctx.global_style()).clone();
     style.spacing.button_padding = egui::vec2(8.0, 4.0);

@@ -167,6 +167,18 @@ MilkyTracker 付属の実曲 5 曲で、再生位置は完全一致、音量比 
 - XM エンジン：OpenMPT 独自の拡張（ステレオサンプル、逆再生など）
 - 補間は線形のみ（libopenmpt の既定は 8 タップの sinc）
 
+## 謝辞
+
+このプロジェクトは、次の作品と人々の仕事の上に成り立っています。
+
+- **[pt2-clone](https://github.com/8bitbubsy/pt2-clone)**（Olav Sørensen 氏 / 8bitbubsy）— MOD エンジンは、その再生部分・Paula エミュレーション・フィルタの移植です。
+- **[ft2-clone](https://github.com/8bitbubsy/ft2-clone)**（同じく Olav Sørensen 氏）— XM エンジンは、その再生ルーチンの移植です。
+- **[OpenMPT / libopenmpt](https://openmpt.org/)**（OpenMPT Project Developers、Olivier Lapicque 氏）— IT・S3M エンジンは libopenmpt の動きを答え合わせの基準にして作りました。レゾナンスフィルタの係数や、古い ModPlug 製の曲の音量の表などは OpenMPT のソースに合わせています。
+- **[libxmp](https://github.com/libxmp/libxmp)** — そのテスト用の曲で、エンジンの動きを確かめました（リポジトリには含めていません）。
+- そして元のトラッカーたち：Ultimate Soundtracker と ProTracker（Amiga）、Scream Tracker 3（Future Crew）、FastTracker 2（Triton）、Impulse Tracker（Jeffrey Lim 氏）。それらで曲を作ってきたすべての人に感謝します。
+
+プレイヤーの「About」ボタンからも、同じ内容を見られます。
+
 ## ライセンス
 
-BSD 3-Clause です（`LICENSE` を参照）。ProTracker エンジンは pt2-clone、XM エンジンは ft2-clone（どちらも Olav Sørensen 氏、BSD 3-Clause）の派生物で、それぞれの著作権表示を `LICENSE` に載せています。
+BSD 3-Clause です（`LICENSE` を参照）。ProTracker エンジンは pt2-clone、XM エンジンは ft2-clone（どちらも Olav Sørensen 氏、BSD 3-Clause）の派生物です。IT・S3M エンジンは OpenMPT（BSD 3-Clause）の式や表を使っています。それぞれの著作権表示を `LICENSE` に載せています。

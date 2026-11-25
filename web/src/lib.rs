@@ -51,6 +51,8 @@ pub async fn start(canvas_id: String) -> Result<(), JsValue> {
             canvas,
             eframe::WebOptions::default(),
             Box::new(|cc| {
+                // always dark, whatever the browser theme
+                cc.egui_ctx.set_theme(egui::ThemePreference::Dark);
                 cc.egui_ctx.set_visuals(egui::Visuals::dark());
                 let mut style = (*cc.egui_ctx.global_style()).clone();
                 style.spacing.button_padding = egui::vec2(8.0, 4.0);

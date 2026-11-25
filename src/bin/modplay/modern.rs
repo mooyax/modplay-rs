@@ -37,6 +37,8 @@ pub struct Modern {
     solo: Option<usize>,
     /// last order shown, to keep the order list scrolled to it
     last_order: i32,
+    /// the About window is open
+    about: bool,
 }
 
 /// What the main window needs to know besides the player
@@ -48,12 +50,14 @@ pub struct Info<'a> {
 
 impl Modern {
     pub fn new() -> Self {
-        Modern { vu: Vec::new(), vu_last_trigger: Vec::new(), hist: Vec::new(), solo: None, last_order: -1 }
+        Modern { vu: Vec::new(), vu_last_trigger: Vec::new(), hist: Vec::new(), solo: None, last_order: -1, about: false }
     }
 
     /// Forget per-song state (after loading a new file)
     pub fn reset(&mut self) {
+        let about = self.about;
         *self = Modern::new();
+        self.about = about;
     }
 
     pub fn show(&mut self, ui: &mut egui::Ui, p: &dyn Player, info: &Info) -> Vec<Action> {
@@ -99,7 +103,11 @@ impl Modern {
                 stat(ui, "SPEED", &st.speed.to_string());
                 stat(ui, "TEMPO", &st.bpm.to_string());
                 stat(ui, "TIME", &format!("{:02}:{:02}", secs / 60, secs % 60));
-
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if ui.button("About").on_hover_text("Credits and licenses").clicked() {
+                        self.about = !self.about;
+                    }
+                });
             });
         });
 
@@ -126,6 +134,12 @@ impl Modern {
         egui::CentralPanel::default().frame(egui::Frame::new().fill(BG)).show(ui, |ui| {
             self.pattern_area(ui, p, &st, &mut actions);
         });
+
+        if self.about {
+            let mut open = true;
+            egui::Window::new("About modplay").open(&mut open).collapsible(false).resizable(false).default_width(460.0).anchor(Align2::CENTER_CENTER, Vec2::ZERO).show(ui.ctx(), about_contents);
+            self.about = open;
+        }
         actions
     }
 
@@ -505,4 +519,30 @@ fn small_toggle(ui: &mut egui::Ui, painter: &egui::Painter, r: Rect, text: &str,
     painter.rect_filled(r, CornerRadius::same(3), fill);
     painter.text(r.center(), Align2::CENTER_CENTER, text, FontId::proportional(11.0), if on { Color32::BLACK } else { TXT_ROWNUM });
     resp
+}
+
+/// The About window: what the engines are built on, with thanks.
+fn about_contents(ui: &mut egui::Ui) {
+    ui.spacing_mut().item_spacing.y = 6.0;
+    ui.label(egui::RichText::new("modplay-rs").size(16.0).strong().color(TXT_NOTE));
+    ui.label("Tracker music (MOD / IT / S3M / XM) played by engines written in Rust.");
+    ui.hyperlink_to("github.com/mooyax/modplay-rs", "https://github.com/mooyax/modplay-rs");
+    ui.separator();
+    ui.label(egui::RichText::new("Built on the work of").strong().color(TXT_NOTE));
+    let credit = |ui: &mut egui::Ui, name: &str, url: &str, what: &str| {
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing.x = 4.0;
+            ui.hyperlink_to(name, url);
+            ui.label(egui::RichText::new(what).color(TXT_ROWNUM));
+        });
+    };
+    credit(ui, "pt2-clone", "https://github.com/8bitbubsy/pt2-clone", "by Olav Sørensen (8bitbubsy) — the MOD engine is a port of its replayer, Paula emulation and filters (BSD-3-Clause)");
+    credit(ui, "ft2-clone", "https://github.com/8bitbubsy/ft2-clone", "by Olav Sørensen (8bitbubsy) — the XM engine is a port of its replayer (BSD-3-Clause)");
+    credit(ui, "OpenMPT / libopenmpt", "https://openmpt.org/", "by the OpenMPT Project Developers and Olivier Lapicque — the reference for the IT / S3M engine; its resonant filter and mix-level tables follow OpenMPT (BSD-3-Clause)");
+    credit(ui, "libxmp", "https://github.com/libxmp/libxmp", "— its test modules were used to check the engines");
+    ui.separator();
+    ui.label(egui::RichText::new("And the trackers themselves").strong().color(TXT_NOTE));
+    ui.label(egui::RichText::new("Ultimate Soundtracker and ProTracker (Amiga), Scream Tracker 3 (Future Crew), FastTracker 2 (Triton), Impulse Tracker (Jeffrey Lim) — and everyone who made music with them.").color(TXT_ROWNUM));
+    ui.separator();
+    ui.label(egui::RichText::new("BSD 3-Clause License. The copyright notices of pt2-clone, ft2-clone and OpenMPT are in the LICENSE file.").size(11.5).color(TXT_ROWNUM));
 }
