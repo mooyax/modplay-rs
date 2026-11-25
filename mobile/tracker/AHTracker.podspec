@@ -7,8 +7,8 @@ Pod::Spec.new do |s|
   s.version        = '2.0.0'
   s.summary        = 'Tracker music for Expo apps (modplay-rs Rust engines, libopenmpt-compatible C API)'
   s.license        = { :type => 'BSD-3-Clause', :file => 'LICENSE' }
-  s.author         = 'mooya'
-  s.homepage       = 'https://aetheriumhearts.boolmousse.com'
+  s.author         = 'mooyax'
+  s.homepage       = 'https://github.com/mooyax/modplay-rs'
   s.platforms      = { :ios => '15.1' }
   s.swift_version  = '5.9'
   s.source         = { git: '' }
