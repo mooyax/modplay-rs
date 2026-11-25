@@ -1,184 +1,183 @@
 # modplay-rs
 
-トラッカー音楽（MOD・IT・S3M・XM）を鳴らす、Rust だけで書いた再生エンジンとプレイヤーです。
+English | [日本語](README.ja.md)
 
-**▶ ブラウザで試す：https://mooyax.github.io/modplay-rs/** （曲ファイルをページにドロップして、クリックすると鳴ります）
+Tracker music (MOD, IT, S3M, XM) playback engines and a player, written in pure Rust.
 
-- **MOD**：[pt2-clone](https://github.com/8bitbubsy/pt2-clone)（8bitbubsy 氏による ProTracker 2 クローン）の再生部分の移植。元版と同じ音を出します。
-- **XM**：[ft2-clone](https://github.com/8bitbubsy/ft2-clone)（同じく 8bitbubsy 氏による FastTracker 2 クローン）の再生ルーチンの移植。
-- **IT・S3M**：自作のエンジン。libopenmpt と同じ曲を鳴らして比べ、再生位置と音量が合うように作っています。
-- **modplay**：トラッカー風の画面で曲を再生する GUI プレイヤー（Windows / Linux / macOS）。
-- **web/**：同じプレイヤーのブラウザ版（WebAssembly）。インストールなしで、ブラウザに曲をドロップして聴けます（[公開版](https://mooyax.github.io/modplay-rs/)）。
-- **mobile/**：libopenmpt と同じ C の関数名を持つ静的ライブラリ（iOS・Android 向け）。libopenmpt を使っているアプリの差し替え用です。
+**▶ Try it in your browser: https://mooyax.github.io/modplay-rs/** (drop a module file on the page, then click to start the sound)
 
-C/C++ のライブラリには依存しません（比較ツールだけ、任意で libopenmpt を使います）。
+- **MOD**: a port of the replayer of [pt2-clone](https://github.com/8bitbubsy/pt2-clone) (8bitbubsy's ProTracker 2 clone). It sounds the same as the original.
+- **XM**: a port of the replayer of [ft2-clone](https://github.com/8bitbubsy/ft2-clone) (8bitbubsy's FastTracker 2 clone).
+- **IT, S3M**: an engine of our own, checked song by song against libopenmpt so that playback position and loudness match.
+- **modplay**: a GUI player with a tracker-style screen (Windows / Linux / macOS).
+- **web/**: the same player in the browser (WebAssembly). Nothing to install: drop a module on the page and listen ([live version](https://mooyax.github.io/modplay-rs/)).
+- **mobile/**: a static library for iOS and Android that exports the same C functions as libopenmpt, to replace libopenmpt in existing apps ([details](mobile/README.md)).
 
-![modplay の画面](docs/screenshot.png)
+No C/C++ libraries are needed (only the comparison tools can optionally use libopenmpt).
 
-## ProTracker エンジン（MOD）
+![The modplay player](docs/screenshot.png)
 
-| 元のCファイル | Rust | 内容 |
+## ProTracker engine (MOD)
+
+| Original C file | Rust | Contents |
 |---|---|---|
-| `pt2_paula.c` | `src/paula.rs` | Paula（Amigaの音源チップ）エミュレーション、BLEP合成 |
-| `pt2_blep.c` / `pt2_rcfilters.c` / `pt2_downsample2x.c` | `src/dsp.rs` | minBLEP、A500/A1200 の RC フィルタ・LEDフィルタ、2倍ダウンサンプラ |
-| `pt2_replayer.c` | `src/replayer.rs` | ProTracker 2.3D リプレイヤ（全エフェクト、PTのバグ挙動も含む） |
-| `pt2_audio.c`（出力部） | `src/engine.rs` | ミキサ、ステレオ幅、ディザ、BPM→tick長テーブル |
-| `pt2_module_loader.c` / `pt2_load_mod31.c` / `pt2_load_mod15.c` | `src/module.rs` | MOD 読み込み（31/15サンプル、NT/HMNT/FLT/STK 変換を含む） |
-| `pt2_mod2wav.c` | `src/mod2wav.rs` | MOD → WAV 書き出し（ループ回数、フェードアウト） |
-| `pt2_tables.c` | `src/tables.rs` | 周期表・ビブラートテーブル・BLEPテーブル（Cソースから自動生成） |
+| `pt2_paula.c` | `src/paula.rs` | Paula (Amiga sound chip) emulation, BLEP synthesis |
+| `pt2_blep.c` / `pt2_rcfilters.c` / `pt2_downsample2x.c` | `src/dsp.rs` | minBLEP, A500/A1200 RC filters and LED filter, 2x downsampler |
+| `pt2_replayer.c` | `src/replayer.rs` | ProTracker 2.3D replayer (all effects, including PT's quirks) |
+| `pt2_audio.c` (output part) | `src/engine.rs` | mixer, stereo separation, dithering, BPM → tick length table |
+| `pt2_module_loader.c` / `pt2_load_mod31.c` / `pt2_load_mod15.c` | `src/module.rs` | MOD loading (31/15 samples, NT/HMNT/FLT/STK conversion) |
+| `pt2_mod2wav.c` | `src/mod2wav.rs` | MOD → WAV rendering (loop count, fade-out) |
+| `pt2_tables.c` | `src/tables.rs` | period, vibrato and BLEP tables (generated from the C sources) |
 
-再生エンジン（ライブラリ）と `pt2wav` は外部クレートに依存していません。GUI の `modplay` は `eframe`（egui。ウィンドウと画面）、`cpal`（音声出力）、`rfd`（ファイル選択、Windowsのみ）を使います。
+The playback engines (the library) and `pt2wav` have no external crate dependencies. The `modplay` GUI uses `eframe` (egui, for the window and screen), `cpal` (audio output) and `rfd` (file dialog, Windows only).
 
-### 使い方
+### Usage
 
 ```
 cargo build --release
-target\release\pt2wav.exe song.mod                 # song.wav を出力
+target\release\pt2wav.exe song.mod                 # writes song.wav
 target\release\pt2wav.exe song.mod out.wav --model a500 --stereo 100 --loops 1 --fadeout 6
 target\release\pt2wav.exe --help
 ```
 
-ライブラリとして使う場合：
+As a library:
 
 ```rust
 let data = std::fs::read("song.mod")?;
 let song = modplay::Module::load(&data, modplay::module::DEFAULT_MAX_SAMPLE_LENGTH)?;
 let mut engine = modplay::Engine::new(song, modplay::EngineConfig::default());
 
-// リアルタイム再生（オーディオコールバックから呼ぶ）
+// real-time playback (call from an audio callback)
 engine.play_song();
-let mut buf = vec![0i16; 1024 * 2]; // ステレオ交互
+let mut buf = vec![0i16; 1024 * 2]; // interleaved stereo
 engine.render(&mut buf);
 ```
 
-### 元のC版との一致検証
+### Verification against the original C version
 
-`tools/` に検証用の道具が入っています。
+`tools/` contains the verification tools:
 
-- `tools/cref/` … 元の pt2-clone の C ソース（エンジン部分）をそのままビルドする、画面なしのリファレンス版 MOD2WAV（Linux / WSL 用。SDL2 の開発ヘッダが必要）
-- `tools/compare.sh` … C 版と Rust 版で同じ MOD を書き出し、WAV をバイト単位で比較
-- `tools/genfuzz.py` … 全エフェクトをランダムに使う MOD を自動生成（ファジング）
+- `tools/cref/` … a headless reference MOD2WAV that builds the original pt2-clone C sources (engine part) unchanged (Linux / WSL; needs the SDL2 development headers)
+- `tools/compare.sh` … renders the same MOD with the C and the Rust version and compares the WAV files byte by byte
+- `tools/genfuzz.py` … generates MODs that use every effect at random (fuzzing)
 
-検証結果（2026-11-23 時点）：
+Results (as of 2026-11-23):
 
-- libxmp のテスト用 MOD 42 曲：**全曲バイト単位で一致**（A1200/A500、ステレオ幅 0/20/100%、ループ・フェードアウトの各設定で確認）
-  - 末尾が欠けた（途中で切れた）MOD ファイルが 3 つあり、C 版はファイルの終わりを越えて読む未定義動作になるため、そのままでは一致しません。Rust 版は欠けた部分を無音（0）として扱います。足りない分を 0 で埋めたファイルでは 3 曲とも完全に一致しました。
-- ランダム生成 MOD 300 曲（A1200・ステレオ幅 20%）：**全曲バイト単位で一致**
-- ランダム生成 MOD 200 曲（A500・ステレオ幅 100%）：**全曲バイト単位で一致**
+- libxmp's 42 test MODs: **all byte-identical** (A1200/A500, stereo separation 0/20/100%, with each loop and fade-out setting)
+  - Three of the MOD files are truncated. The C version reads past the end of the file there (undefined behaviour), so they do not match as they are; the Rust version treats the missing part as silence (0). With the missing bytes padded with zeros, all three match exactly.
+- 300 randomly generated MODs (A1200, stereo separation 20%): **all byte-identical**
+- 200 randomly generated MODs (A500, stereo separation 100%): **all byte-identical**
 
 ```
-# WSL 等で
+# on WSL or similar
 git clone https://github.com/8bitbubsy/pt2-clone
 tools/cref/build.sh ./pt2-clone
-ls *.mod | tools/compare.sh      # （compare.sh 内のパスは環境に合わせて変更）
+ls *.mod | tools/compare.sh      # (adjust the paths in compare.sh to your setup)
 ```
 
-注意：曲によっては終わりが来ないもの（E6x パターンループの組み合わせ等）があり、元の pt2-clone はそうした曲を延々と書き出し続けます。`pt2wav` は安全のため既定で 30 分（`--max-seconds 1800`）で打ち切ります。`--max-seconds 0` で無制限になります。
+Note: some songs never end (certain combinations of E6x pattern loops, for example), and the original pt2-clone keeps rendering them forever. To be safe, `pt2wav` stops after 30 minutes by default (`--max-seconds 1800`); `--max-seconds 0` removes the limit.
 
-```
-```
+## modplay: tracker-style player (GUI)
 
-## modplay：トラッカー風プレイヤー（GUI）
+Plays modules on a tracker-style screen (made with egui). All sound comes from the Rust engines; no C/C++ libraries are used.
 
-トラッカー風の画面で曲を再生します（egui 製）。音はすべて Rust 製のエンジンで作り、C/C++ のライブラリは使いません。
+- **MOD** (4-channel ProTracker format): the ProTracker engine (pt2-clone port, sounds like the original)
+- **IT, S3M**: the Rust IT engine (`src/it/`)
+- **XM**: the Rust XM engine (`src/xm/`, a port of ft2-clone's replayer)
 
-- **MOD**（4チャンネルのProTracker形式）：ProTracker エンジン（pt2-clone の移植。元版と同じ音）
-- **IT・S3M**：自作の Rust 製エンジン（`src/it/`）
-- **XM**：自作の Rust 製エンジン（`src/xm/`。ft2-clone の再生ルーチンの移植）
+The screen:
 
-画面の構成：
-
-- 上部：再生 / 一時停止・停止・前後のポジション・ファイルを開く、曲名、POSITION / PATTERN / ROW / SPEED / TEMPO / TIME
-- チャンネルの見出し：チャンネルごとのスコープ（実際の波形）、VU メーター、M（ミュート）、S（ソロ）
-- パターン：全チャンネルを表示し、再生中の行が常に中央に来るようにスクロールします。列は `音名 楽器 音量列 エフェクト`。チャンネルが多いときは横スクロールします。
-- 右側：オーダーリスト（クリックでその位置へ移動）と楽器 / サンプルの一覧
-- ファイルはウィンドウにドラッグ＆ドロップしても開けます。
+- Top: play / pause, stop, previous / next position, open file, song title, POSITION / PATTERN / ROW / SPEED / TEMPO / TIME, About
+- Channel headers: a scope per channel (the real waveform), VU meter, M (mute), S (solo)
+- Pattern: all channels, scrolled so that the playing row stays in the middle. Columns are `note instrument volume-column effect`; with many channels it scrolls sideways.
+- Right: the order list (click to jump there) and the instrument / sample list
+- Files can also be dropped on the window.
 
 ```
 cargo build --release
-target\release\modplay.exe                 # ファイル選択ダイアログが開く
+target\release\modplay.exe                 # opens a file dialog
 target\release\modplay.exe song.it
 ```
 
-| 操作 | 内容 |
+| Key | Action |
 |---|---|
-| Space | 再生 / 一時停止 |
-| PageUp / PageDown（または - / +） | 前 / 次のポジションへ |
-| O | ファイルを開く |
-| Esc | 終了 |
-| M / S ボタン | チャンネルのミュート / ソロ |
+| Space | play / pause |
+| PageUp / PageDown (or - / +) | previous / next position |
+| O | open a file |
+| Esc | quit |
+| M / S buttons | mute / solo a channel |
 
-オプション：`--size 1600x900`（ウィンドウの大きさ）、`--stereo 0〜100`（ステレオの広がり。既定 20）、`--screenshot out.png --at 秒`（画面を PNG に保存して終了）。
+Options: `--size 1600x900` (window size), `--stereo 0-100` (stereo separation, default 20), `--screenshot out.png --at seconds` (save the window as PNG and quit).
 
-### ブラウザ版（`web/`）
+### Browser version (`web/`)
 
-同じエンジンと画面を WebAssembly にして、ブラウザで動かします。曲はページにドラッグ＆ドロップするか、フォルダのボタンで開きます。ブラウザの決まりで、音は最初にクリック（かキー入力）したときに出始めます。
+The same engines and screen, compiled to WebAssembly and running in the browser. Drop a module on the page or open one with the folder button. Browsers only allow sound after a user action, so the sound starts with the first click (or key press).
 
 ```
 powershell -ExecutionPolicy Bypass -File web\build-web.ps1 -Serve
 ```
 
-`web\dist` にページ一式（`index.html`・`.js`・`.wasm`）ができ、`-Serve` を付けると http://localhost:8000/ で開きます（Python が必要）。WebAssembly はファイルを直接開く（file://）と動かないので、Web サーバー経由で開いてください。
+This builds the page (`index.html`, `.js`, `.wasm`) into `web\dist`; with `-Serve` it also opens it at http://localhost:8000/ (needs Python). WebAssembly pages do not work when opened as files (file://), so open them through a web server.
 
-- `?url=曲のURL` を付けると、その曲を読み込んだ状態で開きます（曲を置いたサーバーが CORS を許可している必要があります）。
-- リポジトリが公開されていれば、`.github/workflows/web.yml` が push のたびにブラウザ版をビルドして GitHub Pages に置きます（Settings → Pages → Source を「GitHub Actions」にしてください）。
+- Add `?url=<module URL>` to open the page with that module loaded (the server hosting the module must allow CORS).
+- When the repository is public, `.github/workflows/web.yml` builds the browser version on every push and publishes it on GitHub Pages (set Settings → Pages → Source to "GitHub Actions").
 
-### 比較ツールを使う場合だけ：libopenmpt の準備
+### Only for the comparison tools: setting up libopenmpt
 
-`examples/` の比較ツール（itcmp・xmcmp・bench の mpt モード）は、libopenmpt と同じ曲を鳴らして答え合わせをします。これらは `--features openmpt` を付けたときだけビルドされ、そのときだけ libopenmpt が必要です。プレイヤーとエンジンには不要です。
+The comparison tools in `examples/` (itcmp, xmcmp, and bench in mpt mode) play the same songs with libopenmpt to check the engines. They are only built with `--features openmpt`, and only then is libopenmpt needed. The player and the engines do not need it.
 
-- Windows：https://lib.openmpt.org/libopenmpt/download/ から Windows 10 / amd64 の **libopenmpt**（development 用パッケージ）の zip を落とし、プロジェクト直下の `libopenmpt` フォルダに展開します。`.lib` と `.dll` はビルド時に自動で探し、DLL は `target\release` にコピーされます。別の場所に置く場合は環境変数 `LIBOPENMPT_DIR` で指定します。
-- Linux / macOS：パッケージマネージャで libopenmpt を入れます（pkg-config で探します）。
+- Windows: download the **libopenmpt** development package for Windows 10 / amd64 from https://lib.openmpt.org/libopenmpt/download/ and extract it into a `libopenmpt` folder in the project root. The `.lib` and `.dll` files are found automatically at build time, and the DLLs are copied to `target\release`. To keep it elsewhere, set the `LIBOPENMPT_DIR` environment variable.
+- Linux / macOS: install libopenmpt with your package manager (it is found through pkg-config).
 
 ```
 cargo run --release --features openmpt --example itcmp -- song.it 60
 ```
 
-## Rust 製 IT エンジン（`src/it/`）
+## Rust IT engine (`src/it/`)
 
-- `s3m.rs`：S3M の読み込み。IT と同じ内部形式に変換し、ST3 特有の挙動（ピリオドベースの音程、共有エフェクトメモリ、速いボリュームスライド、ループの優先順位など）は再生側で切り替えます
-- `format.rs`：IT の読み込み（新旧の楽器形式、IT2.14/2.15 圧縮サンプル、ステレオサンプル、パックされたパターン）
-- `player.rs`：再生（A〜Z のエフェクト、音量列、エンベロープとキャリー、フェードアウト、NNA/DCT/DCA、パターンループ、オートビブラート、レゾナンスフィルタなど）
-  - レゾナンスフィルタ：楽器の初期カットオフ／レゾナンス、Zxx（MIDI マクロ。ファイルに埋め込まれた設定または既定値。SFx で切り替え）、フィルタエンベロープ。係数は OpenMPT の IT 互換モードと同じ式です。
-- `examples/itcmp.rs`：libopenmpt と同じ曲を並べて鳴らし、再生位置・音量の一致を比べる検証ツール
+- `s3m.rs`: S3M loading. Converts to the same internal format as IT; ST3-specific behaviour (period-based pitch, shared effect memory, fast volume slides, loop priority and so on) is switched on in the player.
+- `format.rs`: IT loading (old and new instrument formats, IT 2.14/2.15 compressed samples, stereo samples, packed patterns)
+- `player.rs`: playback (effects A–Z, volume column, envelopes with carry, fade-out, NNA/DCT/DCA, pattern loops, auto-vibrato, resonant filters and more)
+  - Resonant filters: the instrument's initial cutoff / resonance, Zxx (MIDI macros, from the file's embedded configuration or the defaults, switched with SFx) and the filter envelope. The coefficients use the same formulas as OpenMPT's IT-compatible mode.
+- `examples/itcmp.rs`: plays the same song with libopenmpt side by side and compares playback position and loudness
 
 ```
-cargo run --release --features openmpt --example itcmp -- song.it 60          # 60秒ぶん比較
-cargo run --release --features openmpt --example itcmp -- song.it 60 --solo 3 # チャンネル3だけ比較
+cargo run --release --features openmpt --example itcmp -- song.it 60          # compare 60 seconds
+cargo run --release --features openmpt --example itcmp -- song.it 60 --solo 3 # channel 3 only
 ```
 
-libxmp のテスト用 IT 114 ファイルで、107 ファイルは再生位置（オーダー・行）が libopenmpt と完全一致します。実曲（Fight2.it、4th_Symmetriad.it など）は音量もほぼ一致し、フィルタを多用する 4th_Symmetriad.it も周波数帯ごとの音量差が ±0.5dB 以内です。
+Of libxmp's 114 IT test files, 107 match libopenmpt's playback position (order and row) exactly. Real songs (Fight2.it, 4th_Symmetriad.it and others) also match in loudness; even 4th_Symmetriad.it, which uses filters heavily, is within ±0.5 dB in every frequency band.
 
-## Rust 製 XM エンジン（`src/xm/`）
+## Rust XM engine (`src/xm/`)
 
-8bitbubsy の [ft2-clone](https://github.com/8bitbubsy/ft2-clone)（FastTracker II の再生ルーチンを忠実に再現したもの）から、再生ロジックを Rust に移植しました。
+The playback logic is ported to Rust from 8bitbubsy's [ft2-clone](https://github.com/8bitbubsy/ft2-clone), a faithful reproduction of FastTracker II's replayer.
 
-- `format.rs`：XM の読み込み（v1.02〜1.04、デルタ圧縮サンプル、ModPlug ADPCM、ステレオサンプルのモノラル化、FT2 と同じ値の補正）
-- `player.rs`：再生（tickReplayer / getNewNote / 全エフェクト / 音量列 / エンベロープ / フェードアウト / オートビブラート）。16 ビットの周期計算の癖などの FT2 の挙動もそのまま移しています。ミキサーは自前（線形補間・ボリュームランプ）で、出力レベルとパン法則は libopenmpt に合わせています（FT2 製の曲は FT2 の平方根パン）
-- `tables.rs`：ft2-clone の周期表・ビブラート表など
-- `examples/xmcmp.rs`：libopenmpt との比較ツール（使い方は itcmp と同じ）
+- `format.rs`: XM loading (v1.02–1.04, delta-encoded samples, ModPlug ADPCM, stereo samples mixed to mono, the same value clamping as FT2)
+- `player.rs`: playback (tickReplayer / getNewNote / all effects / volume column / envelopes / fade-out / auto-vibrato), including FT2's quirks such as its 16-bit period arithmetic. The mixer is our own (linear interpolation, volume ramps); output level and pan law follow libopenmpt (songs made with FT2 use FT2's square-root pan law).
+- `tables.rs`: ft2-clone's period, vibrato and other tables
+- `examples/xmcmp.rs`: comparison tool against libopenmpt (used like itcmp)
 
-MilkyTracker 付属の実曲 5 曲で、再生位置は完全一致、音量比 0.99〜1.01 です。FT2 の細かい挙動のテスト曲で libopenmpt と結果が違う場合は、ft2-clone（実機 FT2）の挙動を正としています。OpenMPT 独自の拡張（ステレオサンプル、逆再生など）には対応していません。
+With the five real songs that come with MilkyTracker, playback position matches exactly and the loudness ratio is 0.99–1.01. Where libopenmpt differs from ft2-clone on test songs for FT2's finer behaviour, ft2-clone (real FT2) is taken as correct. OpenMPT's own extensions (stereo samples, reverse playback and so on) are not supported.
 
-## 未対応のもの
+## Not supported
 
-- PowerPacker（PP20）・XPK で圧縮された MOD の展開（`pt2_pp_unpack.c` / `pt2_xpk_unpack.c`）
-- IT エンジン：外部 MIDI 出力や VST 用の MIDI マクロ、OpenMPT 独自の拡張（スムーズ MIDI マクロ `\xx` など）
-- XM エンジン：OpenMPT 独自の拡張（ステレオサンプル、逆再生など）
-- 補間は線形のみ（libopenmpt の既定は 8 タップの sinc）
+- Unpacking MODs compressed with PowerPacker (PP20) or XPK (`pt2_pp_unpack.c` / `pt2_xpk_unpack.c`)
+- IT engine: MIDI macros for external MIDI output or VST, OpenMPT's own extensions (smooth MIDI macros `\xx` and so on)
+- XM engine: OpenMPT's own extensions (stereo samples, reverse playback and so on)
+- Linear interpolation only (libopenmpt defaults to an 8-tap sinc)
 
-## 謝辞
+## Acknowledgements
 
-このプロジェクトは、次の作品と人々の仕事の上に成り立っています。
+This project stands on the work of these projects and people:
 
-- **[pt2-clone](https://github.com/8bitbubsy/pt2-clone)**（Olav Sørensen 氏 / 8bitbubsy）— MOD エンジンは、その再生部分・Paula エミュレーション・フィルタの移植です。
-- **[ft2-clone](https://github.com/8bitbubsy/ft2-clone)**（同じく Olav Sørensen 氏）— XM エンジンは、その再生ルーチンの移植です。
-- **[OpenMPT / libopenmpt](https://openmpt.org/)**（OpenMPT Project Developers、Olivier Lapicque 氏）— IT・S3M エンジンは libopenmpt の動きを答え合わせの基準にして作りました。レゾナンスフィルタの係数や、古い ModPlug 製の曲の音量の表などは OpenMPT のソースに合わせています。
-- **[libxmp](https://github.com/libxmp/libxmp)** — そのテスト用の曲で、エンジンの動きを確かめました（リポジトリには含めていません）。
-- そして元のトラッカーたち：Ultimate Soundtracker と ProTracker（Amiga）、Scream Tracker 3（Future Crew）、FastTracker 2（Triton）、Impulse Tracker（Jeffrey Lim 氏）。それらで曲を作ってきたすべての人に感謝します。
+- **[pt2-clone](https://github.com/8bitbubsy/pt2-clone)** (Olav Sørensen / 8bitbubsy) — the MOD engine is a port of its replayer, Paula emulation and filters.
+- **[ft2-clone](https://github.com/8bitbubsy/ft2-clone)** (also by Olav Sørensen) — the XM engine is a port of its replayer.
+- **[OpenMPT / libopenmpt](https://openmpt.org/)** (the OpenMPT Project Developers, Olivier Lapicque) — the IT and S3M engine was built using libopenmpt's playback as the reference. The resonant filter coefficients and the mix-level tables for old ModPlug-made songs follow OpenMPT's source.
+- **[libxmp](https://github.com/libxmp/libxmp)** — its test modules were used to check the engines (they are not included in this repository).
+- And the original trackers: Ultimate Soundtracker and ProTracker (Amiga), Scream Tracker 3 (Future Crew), FastTracker 2 (Triton), Impulse Tracker (Jeffrey Lim). Thanks to everyone who has made music with them.
 
-プレイヤーの「About」ボタンからも、同じ内容を見られます。
+The player's "About" button shows the same credits.
 
-## ライセンス
+## License
 
-BSD 3-Clause です（`LICENSE` を参照）。ProTracker エンジンは pt2-clone、XM エンジンは ft2-clone（どちらも Olav Sørensen 氏、BSD 3-Clause）の派生物です。IT・S3M エンジンは OpenMPT（BSD 3-Clause）の式や表を使っています。それぞれの著作権表示を `LICENSE` に載せています。
+BSD 3-Clause (see `LICENSE`). The ProTracker engine is derived from pt2-clone and the XM engine from ft2-clone (both by Olav Sørensen, BSD 3-Clause). The IT / S3M engine uses formulas and tables from OpenMPT (BSD 3-Clause). Their copyright notices are included in `LICENSE`.
