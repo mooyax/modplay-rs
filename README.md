@@ -2,11 +2,13 @@
 
 トラッカー音楽（MOD・IT・S3M・XM）を鳴らす、Rust だけで書いた再生エンジンとプレイヤーです。
 
+**▶ ブラウザで試す：https://mooyax.github.io/modplay-rs/** （曲ファイルをページにドロップして、クリックすると鳴ります）
+
 - **MOD**：[pt2-clone](https://github.com/8bitbubsy/pt2-clone)（8bitbubsy 氏による ProTracker 2 クローン）の再生部分の移植。元版と同じ音を出します。
 - **XM**：[ft2-clone](https://github.com/8bitbubsy/ft2-clone)（同じく 8bitbubsy 氏による FastTracker 2 クローン）の再生ルーチンの移植。
 - **IT・S3M**：自作のエンジン。libopenmpt と同じ曲を鳴らして比べ、再生位置と音量が合うように作っています。
 - **modplay**：トラッカー風の画面で曲を再生する GUI プレイヤー（Windows / Linux / macOS）。
-- **web/**：同じプレイヤーのブラウザ版（WebAssembly）。インストールなしで、ブラウザに曲をドロップして聴けます。
+- **web/**：同じプレイヤーのブラウザ版（WebAssembly）。インストールなしで、ブラウザに曲をドロップして聴けます（[公開版](https://mooyax.github.io/modplay-rs/)）。
 - **mobile/**：libopenmpt と同じ C の関数名を持つ静的ライブラリ（iOS・Android 向け）。libopenmpt を使っているアプリの差し替え用です。
 
 C/C++ のライブラリには依存しません（比較ツールだけ、任意で libopenmpt を使います）。
