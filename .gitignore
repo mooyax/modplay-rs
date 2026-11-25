@@ -7,3 +7,4 @@ tools/cref/harness
 mobile/ahmod/target/
 mobile/tracker/android/libs/
 mobile/tracker/ios/AHMod.xcframework/
+!docs/*.png

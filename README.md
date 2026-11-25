@@ -10,6 +10,8 @@
 
 C/C++ のライブラリには依存しません（比較ツールだけ、任意で libopenmpt を使います）。
 
+![modplay の画面](docs/screenshot.png)
+
 ## ProTracker エンジン（MOD）
 
 | 元のCファイル | Rust | 内容 |
