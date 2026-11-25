@@ -1,0 +1,10 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["AHTrackerModule"],
+    "podspecPath": "AHTracker.podspec"
+  },
+  "android": {
+    "modules": ["expo.modules.ahtracker.AHTrackerModule"]
+  }
+}

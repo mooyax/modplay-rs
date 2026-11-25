@@ -1,0 +1,30 @@
+#include "pt2_config.h"
+config_t config;
+int askBox() { return 0; }
+int calcAudioLatencyVars() { return 0; }
+int displayErrorMsg() { return 0; }
+int displayMainScreen() { return 0; }
+int displayMsg() { return 0; }
+int fillSampleRedoBuffer() { return 0; }
+int fillVisualsSyncBuffer() { return 0; }
+int loadSample() { return 0; }
+int pointerSetMode() { return 0; }
+int pointerSetModeThreadSafe() { return 0; }
+int posEdClearNames() { return 0; }
+int renderMuteButtons() { return 0; }
+int resetChSyncQueue() { return 0; }
+int setErrPointer() { return 0; }
+int setSyncTickTimeLen() { return 0; }
+int setVisualsDMACON() { return 0; }
+int setVisualsDataPtr() { return 0; }
+int setVisualsLength() { return 0; }
+int setVisualsPeriod() { return 0; }
+int setVisualsVolume() { return 0; }
+int showErrorMsgBox() { return 0; }
+int statusAllRight() { return 0; }
+int statusOutOfMemory() { return 0; }
+int unicharToAnsi() { return 0; }
+int updateCurrSample() { return 0; }
+int updateCursorPos() { return 0; }
+int updateSamplePos() { return 0; }
+int updateWindowTitle() { return 0; }

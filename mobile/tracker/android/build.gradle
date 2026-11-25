@@ -1,0 +1,31 @@
+// 🎼 トラッカーの部品（Android）。modplay-rs の ahmod（android/libs/<ABI>/libahmod.a）を JNI と一緒に組む（`src/main/cpp/CMakeLists.txt`）
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.ahtracker'
+version = '1.0.0'
+
+android {
+  namespace "expo.modules.ahtracker"
+  // NDK は本体と同じ版を使う（React Native が決めている）
+  if (rootProject.ext.has('ndkVersion')) {
+    ndkVersion rootProject.ext.ndkVersion
+  }
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+    externalNativeBuild {
+      cmake {
+        cppFlags "-std=c++17 -O2 -fexceptions -frtti"
+        arguments "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"   // 16KB のページ（CMakeLists の註）
+      }
+    }
+  }
+  externalNativeBuild {
+    cmake {
+      path "src/main/cpp/CMakeLists.txt"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+[package]
+name = "ahmod"
+version = "1.0.0"
+edition = "2021"
+license = "BSD-3-Clause"
+description = "libopenmpt-compatible C API (subset) on top of the modplay-rs Rust engines (MOD / IT / S3M / XM)"
+
+[lib]
+crate-type = ["staticlib"]
+
+[features]
+default = ["protracker"]
+# MOD files through the ProTracker engine; build with --no-default-features for IT / S3M / XM only
+protracker = []
+
+[dependencies]
+modplay-rs = { path = "../..", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "unwind"
+strip = "debuginfo"

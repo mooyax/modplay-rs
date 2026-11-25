@@ -1,0 +1,9 @@
+target/
+*.wav
+*.png
+tools/cref/harness
+/libopenmpt/
+# mobile build outputs (made by mobile/build-mobile.ps1)
+mobile/ahmod/target/
+mobile/tracker/android/libs/
+mobile/tracker/ios/AHMod.xcframework/
