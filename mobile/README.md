@@ -39,13 +39,16 @@ On macOS or Linux, the same steps work wherever `cargo build --target ...` is av
 2. If a libopenmpt version of the module is already there, move it out of `modules/`; otherwise both are loaded.
 3. Build the app as usual (`npx expo run:ios`, `npx eas build` and so on) and check the sound on a device.
 
-## 3. Differences from libopenmpt
+## 3. Differences from libopenmpt (trade-offs)
 
-- Interpolation is linear. libopenmpt defaults to an 8-tap sinc, so the high frequencies sound slightly different.
-- `set_repeat_count` is accepted, but songs always loop.
-- Supported formats are MOD / IT / S3M / XM. For anything else, create returns NULL.
-- Compared with libopenmpt on 26 real songs used as game background music (10 IT, 16 XM):
-  - Playback position matched 100% on every song.
-  - The loudness ratio was 0.96–1.02.
-  - CPU time was 0.19–0.55 times that of libopenmpt with its default settings (measured on a PC).
-- The library is about 0.5 MB, against about 1.56 MB for libopenmpt (when built for a PC).
+modplay-rs does much less than libopenmpt. If you need more formats or the best sound quality, libopenmpt is the better choice.
+
+- **Formats**: MOD / IT / S3M / XM only (libopenmpt reads dozens). For anything else, create returns NULL.
+- **Sound quality**: linear interpolation only. libopenmpt defaults to an 8-tap sinc, so high frequencies sound slightly different.
+- **Looping**: `set_repeat_count` is accepted, but songs always loop.
+
+In return for doing less, it is small and light. Measured on a PC with 26 real songs used as game background music (10 IT, 16 XM), against libopenmpt with its default settings:
+
+- Playback position matched on every song, and the loudness ratio was 0.96–1.02.
+- CPU time was 0.19–0.55 times that of libopenmpt (the comparison is not like for like: libopenmpt's default interpolation does much more work).
+- The library is about 0.5 MB, against about 1.56 MB for a libopenmpt build that includes all its formats.
