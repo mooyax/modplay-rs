@@ -1,22 +1,17 @@
-//! modplay-rs: tracker music playback in pure Rust. The ProTracker engine is a port of
-//! 8bitbubsy's pt2-clone (ProTracker 2 clone).
+//! modplay-rs: a tracker music player (MOD / IT / S3M / XM).
 //!
-//! Phase 1: playback engine (MOD loader, ProTracker 2.3D replayer,
-//! Paula emulation with BLEP + Amiga filters) and MOD2WAV.
+//! The playback engines live in [featheraudio](https://github.com/mooyax/featheraudio)
+//! (`featheraudio::tracker`); this crate adds the player layer used by the GUI, the browser
+//! version, the mobile library and the tools (a common `Player` trait, MOD2WAV, the optional
+//! libopenmpt bindings). The engine modules are re-exported here under their old paths.
 
-pub mod consts;
-pub mod dsp;
-pub mod engine;
+pub use featheraudio::tracker::protracker::{consts, dsp, engine, module, paula, replayer, tables};
+pub use featheraudio::tracker::{it, xm};
+
 pub mod mod2wav;
-pub mod module;
-pub mod paula;
-pub mod it;
-pub mod xm;
 pub mod player;
 #[cfg(has_openmpt)]
 pub mod openmpt;
-pub mod replayer;
-pub mod tables;
 
 pub use consts::{AmigaModel, TimingMode};
 pub use engine::{Engine, EngineConfig};

@@ -17,17 +17,20 @@ C/C++ のライブラリには依存しません（比較ツールだけ、任�
 
 ![modplay の画面](docs/screenshot.png)
 
+> **再生エンジンは [featheraudio](https://github.com/mooyax/featheraudio)（ゲーム向けの軽量オーディオエンジン）に移りました。** `src/tracker/` の下にあり、`mod`・`it`・`xm` の feature で個別にオン・オフできます。modplay-rs は、その上に作ったプレイヤー（GUI、ブラウザ版、スマホ用ライブラリ、ツール）です。以下の `tracker/protracker/paula.rs` などのパスは featheraudio のリポジトリの中を指します。
+
+
 ## ProTracker エンジン（MOD）
 
 | 元のCファイル | Rust | 内容 |
 |---|---|---|
-| `pt2_paula.c` | `src/paula.rs` | Paula（Amigaの音源チップ）エミュレーション、BLEP合成 |
-| `pt2_blep.c` / `pt2_rcfilters.c` / `pt2_downsample2x.c` | `src/dsp.rs` | minBLEP、A500/A1200 の RC フィルタ・LEDフィルタ、2倍ダウンサンプラ |
-| `pt2_replayer.c` | `src/replayer.rs` | ProTracker 2.3D リプレイヤ（全エフェクト、PTのバグ挙動も含む） |
-| `pt2_audio.c`（出力部） | `src/engine.rs` | ミキサ、ステレオ幅、ディザ、BPM→tick長テーブル |
-| `pt2_module_loader.c` / `pt2_load_mod31.c` / `pt2_load_mod15.c` | `src/module.rs` | MOD 読み込み（31/15サンプル、NT/HMNT/FLT/STK 変換を含む） |
-| `pt2_mod2wav.c` | `src/mod2wav.rs` | MOD → WAV 書き出し（ループ回数、フェードアウト） |
-| `pt2_tables.c` | `src/tables.rs` | 周期表・ビブラートテーブル・BLEPテーブル（Cソースから自動生成） |
+| `pt2_paula.c` | `tracker/protracker/paula.rs` | Paula（Amigaの音源チップ）エミュレーション、BLEP合成 |
+| `pt2_blep.c` / `pt2_rcfilters.c` / `pt2_downsample2x.c` | `tracker/protracker/dsp.rs` | minBLEP、A500/A1200 の RC フィルタ・LEDフィルタ、2倍ダウンサンプラ |
+| `pt2_replayer.c` | `tracker/protracker/replayer.rs` | ProTracker 2.3D リプレイヤ（全エフェクト、PTのバグ挙動も含む） |
+| `pt2_audio.c`（出力部） | `tracker/protracker/engine.rs` | ミキサ、ステレオ幅、ディザ、BPM→tick長テーブル |
+| `pt2_module_loader.c` / `pt2_load_mod31.c` / `pt2_load_mod15.c` | `tracker/protracker/module.rs` | MOD 読み込み（31/15サンプル、NT/HMNT/FLT/STK 変換を含む） |
+| `pt2_mod2wav.c` | `src/mod2wav.rs` (modplay-rs) | MOD → WAV 書き出し（ループ回数、フェードアウト） |
+| `pt2_tables.c` | `tracker/protracker/tables.rs` | 周期表・ビブラートテーブル・BLEPテーブル（Cソースから自動生成） |
 
 再生エンジン（ライブラリ）と `pt2wav` は外部クレートに依存していません。GUI の `modplay` は `eframe`（egui。ウィンドウと画面）、`cpal`（音声出力）、`rfd`（ファイル選択、Windowsのみ）を使います。
 
@@ -82,8 +85,8 @@ ls *.mod | tools/compare.sh      # （compare.sh 内のパスは環境に合わ�
 トラッカー風の画面で曲を再生します（egui 製）。音はすべて Rust 製のエンジンで作り、C/C++ のライブラリは使いません。
 
 - **MOD**（4チャンネルのProTracker形式）：ProTracker エンジン（pt2-clone の移植。元版と同じ音）
-- **IT・S3M**：自作の Rust 製エンジン（`src/it/`）
-- **XM**：自作の Rust 製エンジン（`src/xm/`。ft2-clone の再生ルーチンの移植）
+- **IT・S3M**：自作の Rust 製エンジン（`tracker/it/`）
+- **XM**：自作の Rust 製エンジン（`tracker/xm/`。ft2-clone の再生ルーチンの移植）
 
 画面の構成：
 
@@ -133,7 +136,7 @@ powershell -ExecutionPolicy Bypass -File web\build-web.ps1 -Serve
 cargo run --release --features openmpt --example itcmp -- song.it 60
 ```
 
-## Rust 製 IT エンジン（`src/it/`）
+## Rust 製 IT エンジン（`tracker/it/`）
 
 - `s3m.rs`：S3M の読み込み。IT と同じ内部形式に変換し、ST3 特有の挙動（ピリオドベースの音程、共有エフェクトメモリ、速いボリュームスライド、ループの優先順位など）は再生側で切り替えます
 - `format.rs`：IT の読み込み（新旧の楽器形式、IT2.14/2.15 圧縮サンプル、ステレオサンプル、パックされたパターン）
@@ -148,7 +151,7 @@ cargo run --release --features openmpt --example itcmp -- song.it 60 --solo 3 # 
 
 libxmp のテスト用 IT 114 ファイルで、107 ファイルは再生位置（オーダー・行）が libopenmpt と完全一致します。実曲（Fight2.it、4th_Symmetriad.it など）は音量もほぼ一致し、フィルタを多用する 4th_Symmetriad.it も周波数帯ごとの音量差が ±0.5dB 以内です。
 
-## Rust 製 XM エンジン（`src/xm/`）
+## Rust 製 XM エンジン（`tracker/xm/`）
 
 8bitbubsy の [ft2-clone](https://github.com/8bitbubsy/ft2-clone)（FastTracker II の再生ルーチンを忠実に再現したもの）から、再生ロジックを Rust に移植しました。
 

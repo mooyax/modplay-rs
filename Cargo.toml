@@ -34,6 +34,8 @@ name = "xmcmp"
 required-features = ["openmpt"]
 
 [dependencies]
+# the playback engines (MOD / IT / S3M / XM)
+featheraudio = { git = "https://github.com/mooyax/featheraudio", default-features = false, features = ["tracker"] }
 eframe = { version = "0.37", optional = true, default-features = false, features = ["default_fonts", "glow", "x11", "wayland", "links"] }
 cpal = { version = "0.15", optional = true }
 

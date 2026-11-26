@@ -17,17 +17,20 @@ No C/C++ libraries are needed (only the comparison tools can optionally use libo
 
 ![The modplay player](docs/screenshot.png)
 
+> **The playback engines now live in [featheraudio](https://github.com/mooyax/featheraudio)** (a feather-light game audio engine), under `src/tracker/` with the features `mod`, `it` and `xm`. modplay-rs is the player built on top of them: the GUI, the browser version, the mobile library and the tools. Paths below such as `tracker/protracker/paula.rs` are in the featheraudio repository.
+
+
 ## ProTracker engine (MOD)
 
 | Original C file | Rust | Contents |
 |---|---|---|
-| `pt2_paula.c` | `src/paula.rs` | Paula (Amiga sound chip) emulation, BLEP synthesis |
-| `pt2_blep.c` / `pt2_rcfilters.c` / `pt2_downsample2x.c` | `src/dsp.rs` | minBLEP, A500/A1200 RC filters and LED filter, 2x downsampler |
-| `pt2_replayer.c` | `src/replayer.rs` | ProTracker 2.3D replayer (all effects, including PT's quirks) |
-| `pt2_audio.c` (output part) | `src/engine.rs` | mixer, stereo separation, dithering, BPM → tick length table |
-| `pt2_module_loader.c` / `pt2_load_mod31.c` / `pt2_load_mod15.c` | `src/module.rs` | MOD loading (31/15 samples, NT/HMNT/FLT/STK conversion) |
-| `pt2_mod2wav.c` | `src/mod2wav.rs` | MOD → WAV rendering (loop count, fade-out) |
-| `pt2_tables.c` | `src/tables.rs` | period, vibrato and BLEP tables (generated from the C sources) |
+| `pt2_paula.c` | `tracker/protracker/paula.rs` | Paula (Amiga sound chip) emulation, BLEP synthesis |
+| `pt2_blep.c` / `pt2_rcfilters.c` / `pt2_downsample2x.c` | `tracker/protracker/dsp.rs` | minBLEP, A500/A1200 RC filters and LED filter, 2x downsampler |
+| `pt2_replayer.c` | `tracker/protracker/replayer.rs` | ProTracker 2.3D replayer (all effects, including PT's quirks) |
+| `pt2_audio.c` (output part) | `tracker/protracker/engine.rs` | mixer, stereo separation, dithering, BPM → tick length table |
+| `pt2_module_loader.c` / `pt2_load_mod31.c` / `pt2_load_mod15.c` | `tracker/protracker/module.rs` | MOD loading (31/15 samples, NT/HMNT/FLT/STK conversion) |
+| `pt2_mod2wav.c` | `src/mod2wav.rs` (modplay-rs) | MOD → WAV rendering (loop count, fade-out) |
+| `pt2_tables.c` | `tracker/protracker/tables.rs` | period, vibrato and BLEP tables (generated from the C sources) |
 
 The playback engines (the library) and `pt2wav` have no external crate dependencies. The `modplay` GUI uses `eframe` (egui, for the window and screen), `cpal` (audio output) and `rfd` (file dialog, Windows only).
 
@@ -82,8 +85,8 @@ Note: some songs never end (certain combinations of E6x pattern loops, for examp
 Plays modules on a tracker-style screen (made with egui). All sound comes from the Rust engines; no C/C++ libraries are used.
 
 - **MOD** (4-channel ProTracker format): the ProTracker engine (pt2-clone port, sounds like the original)
-- **IT, S3M**: the Rust IT engine (`src/it/`)
-- **XM**: the Rust XM engine (`src/xm/`, a port of ft2-clone's replayer)
+- **IT, S3M**: the Rust IT engine (`tracker/it/`)
+- **XM**: the Rust XM engine (`tracker/xm/`, a port of ft2-clone's replayer)
 
 The screen:
 
@@ -133,7 +136,7 @@ The comparison tools in `examples/` (itcmp, xmcmp, and bench in mpt mode) play t
 cargo run --release --features openmpt --example itcmp -- song.it 60
 ```
 
-## Rust IT engine (`src/it/`)
+## Rust IT engine (`tracker/it/`)
 
 - `s3m.rs`: S3M loading. Converts to the same internal format as IT; ST3-specific behaviour (period-based pitch, shared effect memory, fast volume slides, loop priority and so on) is switched on in the player.
 - `format.rs`: IT loading (old and new instrument formats, IT 2.14/2.15 compressed samples, stereo samples, packed patterns)
@@ -148,7 +151,7 @@ cargo run --release --features openmpt --example itcmp -- song.it 60 --solo 3 # 
 
 Of libxmp's 114 IT test files, 107 match libopenmpt's playback position (order and row) exactly. Real songs (Fight2.it, 4th_Symmetriad.it and others) also match in loudness; even 4th_Symmetriad.it, which uses filters heavily, is within ±0.5 dB in every frequency band.
 
-## Rust XM engine (`src/xm/`)
+## Rust XM engine (`tracker/xm/`)
 
 The playback logic is ported to Rust from 8bitbubsy's [ft2-clone](https://github.com/8bitbubsy/ft2-clone), a faithful reproduction of FastTracker II's replayer.
 
